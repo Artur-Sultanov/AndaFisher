@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/beaches")
@@ -38,11 +39,22 @@ public class BeachController {
         beachService.deleteBeach(id);
     }
 
+
     @PostMapping("/{beachId}/fish/{fishId}")
     public Beach addFishToBeach(@PathVariable Long beachId, @PathVariable Long fishId) {
         Beach beach = beachService.getBeachById(beachId);
         Fish fish = fishService.getFishById(fishId);
         beach.getFish().add(fish);
         return beachService.saveBeach(beach);
+    }
+
+
+    @GetMapping("/beach/{beachId}/fish")
+    public Set<Fish> getFishByBeachId(@PathVariable Long beachId) {
+        Beach beach = beachService.getBeachById(beachId);
+                /*
+                .orElseThrow(() -> new BeachNotFoundException("Beach not found with id: " + beachId));
+                 */
+        return beach.getFish();
     }
 }
