@@ -33,6 +33,20 @@ public class BeachController {
     public Beach createBeach(@RequestBody Beach beach) {
         return beachService.saveBeach(beach);
     }
+    // Endpoint for updating a beach
+    @PutMapping("/{id}")
+    public Beach updateBeach(@PathVariable Long id, @RequestBody Beach beachDetails) {
+        Beach beach = beachService.getBeachById(id);
+        if (beach != null) {
+            beach.setName(beachDetails.getName());
+            beach.setLocation(beachDetails.getLocation());
+            beach.setDescription(beachDetails.getDescription());
+            beach.setFish(beachDetails.getFish());
+            return beachService.saveBeach(beach);
+        }
+        return null; // Or throw an exception indicating the beach was not found
+    }
+
 
     @DeleteMapping("/{id}")
     public void deleteBeach(@PathVariable Long id) {
