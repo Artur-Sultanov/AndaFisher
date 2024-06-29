@@ -13,6 +13,7 @@ import java.util.Set;
 @RestController
 @RequestMapping("/api/beaches")
 public class BeachController {
+
     @Autowired
     private BeachService beachService;
 
@@ -28,12 +29,11 @@ public class BeachController {
     public Beach getBeachById(@PathVariable Long id) {
         return beachService.getBeachById(id);
     }
-
     @PostMapping
     public Beach createBeach(@RequestBody Beach beach) {
         return beachService.saveBeach(beach);
     }
-    // Endpoint for updating a beach
+
     @PutMapping("/{id}")
     public Beach updateBeach(@PathVariable Long id, @RequestBody Beach beachDetails) {
         Beach beach = beachService.getBeachById(id);
@@ -44,15 +44,13 @@ public class BeachController {
             beach.setFish(beachDetails.getFish());
             return beachService.saveBeach(beach);
         }
-        return null; // Or throw an exception indicating the beach was not found
+        return null;
     }
-
 
     @DeleteMapping("/{id}")
     public void deleteBeach(@PathVariable Long id) {
         beachService.deleteBeach(id);
     }
-
 
     @PostMapping("/{beachId}/fish/{fishId}")
     public Beach addFishToBeach(@PathVariable Long beachId, @PathVariable Long fishId) {
@@ -62,13 +60,9 @@ public class BeachController {
         return beachService.saveBeach(beach);
     }
 
-
     @GetMapping("/beach/{beachId}/fish")
     public Set<Fish> getFishByBeachId(@PathVariable Long beachId) {
         Beach beach = beachService.getBeachById(beachId);
-                /*
-                .orElseThrow(() -> new BeachNotFoundException("Beach not found with id: " + beachId));
-                 */
         return beach.getFish();
     }
 }

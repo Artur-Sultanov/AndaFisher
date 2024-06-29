@@ -38,9 +38,6 @@ public class FishController {
     @GetMapping("/{fishId}/beaches")
     public Set<Beach> getBeachesByFishId(@PathVariable Long fishId) {
         Fish fish = fishService.getFishById(fishId);
-                /*
-                .orElseThrow(() -> new FishNotFoundException("Fish not found with id: " + fishId));
-                 */
         return fish.getBeaches();
     }
 }
