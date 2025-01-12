@@ -1,65 +1,50 @@
 package com.example.anda_fisher.Model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "beach", uniqueConstraints = @UniqueConstraint(columnNames = {"name", "location"}))
 public class Beach {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
+
     private String name;
+    @Column(nullable = false)
     private String location;
-    private String description;
+    @Column(updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+    @Column
+    private Double latitude;
+    @Column
+    private Double longitude;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private WaterType waterType;
+    @Column(unique = true)
+    private String imagePath;
 
-    public Beach(Long id, String name, String location, String description, Set<Fish> fish) {
-        this.id = id;
-        this.name = name;
-        this.location = location;
-        this.description = description;
-        this.fish = fish;
-    }
+    @OneToMany(mappedBy = "beach", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private Set<BeachFish> beachFish = new HashSet<>();
 
-    public Beach() {
-    }
-
-    @ManyToMany
-    @JoinTable(
-            name = "beach_fish",
-            joinColumns = @JoinColumn(name = "beach_id"),
-            inverseJoinColumns = @JoinColumn(name = "fish_id"))
-    @JsonIgnore
-    private Set<Fish> fish = new HashSet<>();
-
-
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public String getLocation() {
-        return location;
-    }
-    public void setLocation(String location) {
-        this.location = location;
-    }
-    public String getDescription() { return description; }
-    public void setDescription(String description) {
-        this.description = description;
-    }
-    public Set<Fish> getFish() {
-        return fish;
-    }
-    public void setFish(Set<Fish> fish) {
-        this.fish = fish;
-    }
 }
+
