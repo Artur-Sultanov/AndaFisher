@@ -1,5 +1,6 @@
 package com.example.anda_fisher.Controller;
 
+import com.example.anda_fisher.Filter.BeachFilter;
 import com.example.anda_fisher.Model.Beach;
 import com.example.anda_fisher.Model.WaterType;
 import com.example.anda_fisher.Service.BeachService;
@@ -131,6 +132,10 @@ public class BeachController {
         if (file == null || file.isEmpty()) {
             return ResponseEntity.badRequest().body("Uploaded file is empty or missing");
         }
+        // Validate file size (max 5MB)
+        if (file.getSize() > 5 * 1024 * 1024) {
+            return ResponseEntity.badRequest().body("File size exceeds 5MB limit.");
+        }
 
         // Validate file type
         String fileName = file.getOriginalFilename();
@@ -148,6 +153,46 @@ public class BeachController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error uploading image: " + e.getMessage());
         }
+    }
+
+    /**
+     * Retrieve all beaches with coordinates for the map.
+     * @return List of BeachDTO with coordinates.
+     */
+    @GetMapping("/map")
+    public ResponseEntity<List<BeachDTO>> getAllBeachesForMap() {
+        List<BeachDTO> beaches = beachService.getAllBeaches()
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(beaches);
+    }
+
+    /**
+     * Endpoint to filter beaches by water type, location, and name.
+     * All parameters are optional. If none are provided, all beaches are returned.
+     */
+    @GetMapping("/map/filter")
+    public ResponseEntity<List<BeachDTO>> filterBeaches(
+            @RequestParam(required = false) String waterType,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) String name
+    ) {
+        if (waterType != null) {
+            try {
+                WaterType.valueOf(waterType.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(null);
+            }
+        }
+
+        BeachFilter filter = new BeachFilter(waterType, location, name);
+        List<BeachDTO> beaches = beachService.filterBeaches(filter)
+                .stream()
+                .map(this::convertToDTO)
+                .toList();
+
+        return ResponseEntity.ok(beaches);
     }
 
     /**
@@ -182,5 +227,4 @@ public class BeachController {
         beach.setImagePath(beachDTO.getImagePath());
         return beach;
     }
-
 }
