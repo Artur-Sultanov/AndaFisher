@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+
 import java.util.stream.Collectors;
 
 @RestController
@@ -100,11 +101,13 @@ public class BeachController {
         return ResponseEntity.ok(convertToDTO(updatedBeach));
     }
 
+
     /**
      * Delete a beach by its ID.
      * @param id Beach ID.
      * @return Success message or 404 if not found.
      */
+
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteBeach(@PathVariable Long id) {
         Beach beach = beachService.getBeachById(id);
