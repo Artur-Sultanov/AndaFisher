@@ -1,13 +1,16 @@
-# Anda Fisher Application
+# 🌊 **Anda Fisher Application**
 
 ## 📖 Project Overview
-The **Anda Fisher** application is designed to manage beach data with features for creating, updating, deleting, and viewing beach information. Additionally, it supports uploading images for each beach and managing associated fish species.
+The **Anda Fisher** application is a platform for managing beaches, tracking fish species, and providing real-time weather updates. It allows users to interact with beach data, upload media, and soon will include social features like reviews, ratings, and travel companions.
 
 ## 🚀 Features
-- **CRUD Operations** for beaches (Create, Read, Update, Delete)
+- **CRUD Operations** for beaches and fish (Create, Read, Update, Delete)
 - **File Upload**: Upload images related to beaches
-- **Data Transfer Objects (DTO)** for clear API responses
+- **Real-time Weather Integration**: Weather data from OpenWeatherMap API
+- **DTOs and Mappers**: Clean and secure API responses
+- **Beach Filtering:** Search beaches by water type, location, or name.
 - **Entity Relationship Management**: Link beaches with fish species
+- **Advanced Error Handling**: User-friendly error messages with proper HTTP statuses
 
 ## 🏗️ Project Structure
 
@@ -18,7 +21,8 @@ anda-fisher
 │   │   ├── java
 │   │   │   └── com.example.anda_fisher
 │   │   │       ├── Controller
-│   │   │       │   └── BeachController.java
+│   │   │       │   ├── BeachController.java
+│   │   │       │   └── FishController.java
 │   │   │       ├── Model
 │   │   │       │   ├── Beach.java
 │   │   │       │   ├── Fish.java
@@ -27,11 +31,27 @@ anda-fisher
 │   │   │       ├── Service
 │   │   │       │   ├── BeachService.java
 │   │   │       │   ├── FishService.java
-│   │   │       │   └── FileStorageService.java
-│   │   │       └── dto
-│   │   │           └── BeachDTO.java
+│   │   │       │   ├── FileStorageService.java
+│   │   │       │   └── WeatherService.java
+│   │   │       ├── Repository
+│   │   │       │   ├── BeachRepository.java
+│   │   │       │   └── FishRepository.java
+│   │   │       ├── Security
+│   │   │       │   └── SecurityConfig.java
+│   │   │       ├── DTO
+│   │   │       │   ├── BeachDTO.java
+│   │   │       │   ├── FishDTO.java
+│   │   │       │   └── WeatherDTO.java
+│   │   │       ├── Mapper
+│   │   │       │   ├── FishMapper.java
+│   │   │       │   └── BeachMapper.java
+│   │   │       ├── Filter
+│   │   │       │   └── BeachFilter.java
+│   │   │       └── Config
+│   │   │           └── WebConfig.java
 │   └── resources
 ├── uploads/images
+├── uploads/archive
 ├── pom.xml
 └── README.md
 ```
@@ -43,21 +63,24 @@ anda-fisher
 - **PostgreSQL**
 - **Lombok**
 - **Maven**
+- **OpenWeatherMap API**
+
+---
 
 ## 🛠️ Installation
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/your-repo/anda-fisher.git
+   git clone https://github.com/Artur-Sultanov/AndaFisher.git
    cd anda-fisher
    ```
 
 2. **Configure Database**
    Update `application.properties` with your PostgreSQL credentials:
    ```properties
-   spring.datasource.url=jdbc:postgresql://localhost:5432/anda_fisher
-   spring.datasource.username=your_username
-   spring.datasource.password=your_password
+   spring.datasource.url=jdbc:postgresql://localhost:5432/app
+   spring.datasource.username=postgres
+   spring.datasource.password=12345Aa@
    spring.jpa.hibernate.ddl-auto=update
    ```
 
@@ -102,29 +125,72 @@ anda-fisher
     "message": "Beach with id {id} has been successfully deleted."
   }
   ```
+  
+### 🌦️ Weather Integration
 
-### 🖼️ Image Upload
+- **Get weather for a beach** 
+  `GET /api/beaches/{id}/weather`
+   **Example Response:**
 
-- **Upload beach image**  
-  `POST /api/beaches/{id}/uploadImage`
-  - **Form Data:**  
-    Key: `file` → Upload an image file (`jpg`, `jpeg`, `png`, `gif`)
+  ```json
+  {
+    "location": "Granada",
+    "description": "clear sky",
+    "temperature": 22.5,
+    "feelsLike": 20.0,
+    "windSpeed": 2.5,
+    "humidity": 65,
+    "iconUrl": "http://openweathermap.org/img/wn/01d@2x.png"
+  }
+  ```
 
-## ⚠️ Error Handling
 
-- **404 Not Found:** If the beach does not exist.
-- **400 Bad Request:** Invalid file type during upload.
-- **500 Internal Server Error:** Server-side errors.
+### 🖼️ **Image Upload**
 
-## 📌 Future Improvements
-- User authentication & authorization
-- Advanced filtering and search capabilities
-- Cloud storage for uploaded images
+- **Endpoint:** `POST /api/beaches/{id}/uploadImage`  
+- **Form Data:**  
+  - **Key:** `file` → *(Select image: `jpg`, `jpeg`, `png`, `gif`, max size: 5MB)*  
 
-## 📝 License
-MIT License. See `LICENSE` file for details.
+**Response:**  
+- ✅ *Success:* `"Image uploaded successfully"`  
+- ❌ *Error:* `"Invalid file format or upload failed"`  
+- ⚠️ *Error:* `"File size exceeds 5MB limit"`
+  
+
+
+### ⚙️ Static Resource Configuration
+
+- **Configured access to uploaded images using `WebConfig.java`:**
+  ```java
+  @Override
+  public void addResourceHandlers(ResourceHandlerRegistry registry) {
+      registry.addResourceHandler("/uploads/**")
+              .addResourceLocations("file:uploads/");
+  }
+  ```
 
 ---
 
-**Developed by Anda Fisher Team** 🌊🐟
 
+## ⚠️ Error Handling
+
+- **404 Not Found:** If the beach does not exist (handled in service layer). 
+- **400 Bad Request:** Invalid file type during upload (validated in controller).
+- **500 Internal Server Error:** Server-side errors (handled via global exception handling).
+
+## 📌 Future Improvements
+
+- 🔒 User authentication & authorization (JWT)
+- 🔄 Caching Weather Data to reduce API load
+- ⭐ Reviews and Ratings for beaches
+- 📱 Social Features: Chat and travel companion search
+- ❗ Implement Soft Delete with Media Archive for safer data removal and recovery.
+- 🗑 Auto-cleaning Archive: Auto-delete old media files after 30 days
+  
+
+## 📝 License
+
+This project is licensed under the [MIT License](LICENSE).
+---
+
+**Developed by Anda Fisher Team** 🌊🐟
