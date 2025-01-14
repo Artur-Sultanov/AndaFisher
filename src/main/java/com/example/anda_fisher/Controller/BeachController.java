@@ -1,12 +1,14 @@
 package com.example.anda_fisher.Controller;
 
+import com.example.anda_fisher.DTO.BeachDTO;
+import com.example.anda_fisher.DTO.WeatherDTO;
 import com.example.anda_fisher.Filter.BeachFilter;
 import com.example.anda_fisher.Model.Beach;
 import com.example.anda_fisher.Model.WaterType;
 import com.example.anda_fisher.Service.BeachService;
 import com.example.anda_fisher.Service.FileStorageService;
 import com.example.anda_fisher.Service.FishService;
-import com.example.anda_fisher.dto.BeachDTO;
+import com.example.anda_fisher.Service.WeatherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +17,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-
 import java.util.stream.Collectors;
 
 @RestController
@@ -27,6 +28,7 @@ public class BeachController {
     private final BeachService beachService;
     private final FishService fishService;
     private final FileStorageService fileStorageService;
+    private final WeatherService weatherService;
 
     /**
      * Retrieve a list of all beaches.
@@ -197,6 +199,29 @@ public class BeachController {
 
         return ResponseEntity.ok(beaches);
     }
+
+    @GetMapping("/{id}/weather")
+    public ResponseEntity<?> getBeachWeather(@PathVariable Long id) {
+        // Проверка существования пляжа
+        Beach beach = beachService.getBeachById(id);
+        if (beach == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Beach not found with ID: " + id);
+        }
+
+        try {
+            // Получаем отформатированные данные о погоде
+            WeatherDTO weather = weatherService.getFormattedWeather(beach.getLatitude(), beach.getLongitude());
+            return ResponseEntity.ok(weather);
+
+        } catch (RuntimeException e) {
+            // Обработка ошибок от внешнего API
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching weather data: " + e.getMessage());
+        }
+    }
+
+
+
 
     /**
      * Convert a Beach entity to a BeachDTO.

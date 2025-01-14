@@ -1,4 +1,4 @@
-package com.example.anda_fisher.dto;
+package com.example.anda_fisher.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
