@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 public class BeachService {
 
     private final BeachRepository beachRepository;
+    private final FileCleanupService fileCleanupService;
 
     public List<Beach> getAllBeaches() {
         return beachRepository.findAll()
@@ -43,13 +44,21 @@ public class BeachService {
         Beach existingBeach = beachRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("❌ Beach not found with ID: " + id));
 
+        if (beachRepository.existsByNameAndLocation(beachDTO.getName(), beachDTO.getLocation())
+                && (!existingBeach.getName().equals(beachDTO.getName())
+                || !existingBeach.getLocation().equals(beachDTO.getLocation()))) {
+            throw new ConflictException("⚠️ A beach with the same name and location already exists.");
+        }
+
         BeachMapper.updateEntity(existingBeach, beachDTO);
 
         return beachRepository.save(existingBeach);
     }
 
+
     public void deleteBeach(Long id) {
         Beach beach = getBeachById(id);
+        fileCleanupService.deleteFile(beach.getImagePath());
         beachRepository.delete(beach);
     }
 

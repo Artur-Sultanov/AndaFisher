@@ -1,36 +1,38 @@
 package com.example.anda_fisher.Service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class FileStorageService {
 
-    private final String uploadDir = "uploads/images/";
+    private final FileCleanupService fileCleanupService;
 
-    public String saveFile(MultipartFile file, String subDir) throws IOException {
+    public String saveFile(MultipartFile file, String subDirectory, String oldFilePath) throws IOException {
+        if (oldFilePath != null && !oldFilePath.isBlank()) {
+            fileCleanupService.deleteFile(oldFilePath);
+        }
+
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("Uploaded file is empty or null");
         }
-        String directoryPath = uploadDir + subDir;
-        File directory = new File(directoryPath);
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
 
-        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
-        Path filePath = Paths.get(directoryPath, fileName);
+        Path basePath = Paths.get("C:/Users/artur/Projects/anda-fisher/uploads/images", subDirectory);
+        Path filePath = basePath.resolve(fileName);
 
-        Files.copy(file.getInputStream(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        Files.createDirectories(filePath.getParent());
 
-        return "/uploads/images/" + subDir + "/" + fileName;
+        Files.write(filePath, file.getBytes());
+
+        return Paths.get(subDirectory, fileName).toString().replace("\\", "/");
     }
 }
