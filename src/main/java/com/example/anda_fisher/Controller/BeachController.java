@@ -89,7 +89,7 @@ public class BeachController {
         }
 
         try {
-            String imagePath = fileStorageService.saveFile(file, "beaches");
+            String imagePath = fileStorageService.saveFile(file, "beaches", beach.getImagePath());
             beach.setImagePath(imagePath);
             beachService.updateBeach(beach.getId(), BeachMapper.toDTO(beach)); // Используем обновление
 

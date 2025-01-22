@@ -1,75 +1,90 @@
 package com.example.anda_fisher.Service;
 
-import org.junit.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest
-@ExtendWith(SpringExtension.class)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class FileStorageServiceTest {
+class FileStorageServiceTest {
 
-    @Autowired
     private FileStorageService fileStorageService;
+    private FileCleanupService fileCleanupService;
 
-    @Value("${file.upload.dir:uploads/images/}")
-    private String uploadDir;
-
-    @Test
-    public void testSaveFile_Success() throws IOException {
-        // Arrange
-        MultipartFile file = new MockMultipartFile("file", "test.png", "image/png", "dummy content".getBytes());
-
-        // Act
-        String result = fileStorageService.saveFile(file, "testSubDir");
-
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.contains("testSubDir"));
-        Path path = Paths.get(uploadDir, result);
-        assertTrue(Files.exists(path));
-
-        // Cleanup
-        Files.deleteIfExists(path);
+    @BeforeEach
+    void setUp() {
+        fileCleanupService = mock(FileCleanupService.class);
+        fileStorageService = new FileStorageService(fileCleanupService);
     }
 
     @Test
-    public void testSaveFile_EmptyFile() {
-        // Arrange
-        MultipartFile file = new MockMultipartFile("file", "", "image/png", new byte[0]);
+    void testSaveFile_NewFile_Success() throws IOException {
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.getOriginalFilename()).thenReturn("test.jpg");
+        when(file.getBytes()).thenReturn("test content".getBytes());
 
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> fileStorageService.saveFile(file, "testSubDir"));
+        try (MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
+            mockedFiles.when(() -> Files.createDirectories(any(Path.class))).thenAnswer(invocation -> null);
+            mockedFiles.when(() -> Files.write(any(Path.class), any(byte[].class))).thenAnswer(invocation -> null);
+
+            String result = fileStorageService.saveFile(file, "beaches", null);
+
+            assertTrue(result.contains("beaches"), "Returned path should include the sub-directory");
+            mockedFiles.verify(() -> Files.createDirectories(any(Path.class)), times(1));
+            mockedFiles.verify(() -> Files.write(any(Path.class), any(byte[].class)), times(1));
+        }
     }
 
     @Test
-    public void testSaveFile_DirectoryCreation() throws IOException {
-        // Arrange
-        String subDir = "newDirectory";
-        MultipartFile file = new MockMultipartFile("file", "test.png", "image/png", "dummy content".getBytes());
-        Path dirPath = Paths.get(uploadDir, subDir);
+    void testSaveFile_WithOldFilePath_Success() throws IOException {
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.getOriginalFilename()).thenReturn("test.jpg");
+        when(file.getBytes()).thenReturn("test content".getBytes());
 
-        // Act
-        String result = fileStorageService.saveFile(file, subDir);
+        try (MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
+            mockedFiles.when(() -> Files.createDirectories(any(Path.class))).thenAnswer(invocation -> null);
+            mockedFiles.when(() -> Files.write(any(Path.class), any(byte[].class))).thenAnswer(invocation -> null);
 
-        // Assert
-        assertTrue(Files.exists(dirPath));
+            String result = fileStorageService.saveFile(file, "beaches", "old/test.jpg");
 
-        // Cleanup
-        Files.deleteIfExists(Paths.get(uploadDir, result));
-        Files.deleteIfExists(dirPath);
+            assertTrue(result.contains("beaches"), "Returned path should include the sub-directory");
+            verify(fileCleanupService, times(1)).deleteFile("old/test.jpg");
+            mockedFiles.verify(() -> Files.createDirectories(any(Path.class)), times(1));
+            mockedFiles.verify(() -> Files.write(any(Path.class), any(byte[].class)), times(1));
+        }
+    }
+
+    @Test
+    void testSaveFile_InvalidFile_ThrowsException() {
+        MultipartFile emptyFile = mock(MultipartFile.class);
+        when(emptyFile.isEmpty()).thenReturn(true);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> fileStorageService.saveFile(emptyFile, "beaches", null));
+
+        assertEquals("Uploaded file is empty or null", exception.getMessage());
+    }
+
+    @Test
+    void testSaveFile_FileCreationError() throws IOException {
+        MultipartFile file = mock(MultipartFile.class);
+        when(file.getOriginalFilename()).thenReturn("test.jpg");
+        when(file.getBytes()).thenReturn("test content".getBytes());
+
+        try (MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
+            mockedFiles.when(() -> Files.createDirectories(any(Path.class)))
+                    .thenThrow(new IOException("Simulated creation error"));
+
+            IOException exception = assertThrows(IOException.class,
+                    () -> fileStorageService.saveFile(file, "beaches", null));
+
+            assertEquals("Simulated creation error", exception.getMessage());
+        }
     }
 }

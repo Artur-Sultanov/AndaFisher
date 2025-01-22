@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 public class BeachService {
 
     private final BeachRepository beachRepository;
+    private final FileCleanupService fileCleanupService;
 
     public List<Beach> getAllBeaches() {
         return beachRepository.findAll()
@@ -57,6 +58,7 @@ public class BeachService {
 
     public void deleteBeach(Long id) {
         Beach beach = getBeachById(id);
+        fileCleanupService.deleteFile(beach.getImagePath());
         beachRepository.delete(beach);
     }
 
