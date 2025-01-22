@@ -1,74 +1,60 @@
 package com.example.anda_fisher.Service;
 
+import com.example.anda_fisher.DTO.BeachDTO;
+import com.example.anda_fisher.Exception.ConflictException;
+import com.example.anda_fisher.Exception.ResourceNotFoundException;
 import com.example.anda_fisher.Filter.BeachFilter;
+import com.example.anda_fisher.Mapper.BeachMapper;
 import com.example.anda_fisher.Model.Beach;
-import com.example.anda_fisher.Model.WaterType;
 import com.example.anda_fisher.Repository.BeachRepository;
-import jakarta.persistence.criteria.Predicate;
+import com.example.anda_fisher.Specification.BeachSpecifications;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class BeachService {
-    @Autowired
-    private BeachRepository beachRepository;
+
+    private final BeachRepository beachRepository;
 
     public List<Beach> getAllBeaches() {
-        return beachRepository.findAll();
+        return beachRepository.findAll()
+                .stream()
+                .filter(Beach::isApproved)  // Показываем только одобренные пляжи
+                .collect(Collectors.toList());
     }
 
     public Beach getBeachById(Long id) {
         return beachRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Beach not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("❌ Beach not found with id: " + id));
     }
 
-    public Beach saveBeach(Beach beach) {
+    public Beach addBeach(Beach beach) {
+        if (beachRepository.existsByNameAndLocation(beach.getName(), beach.getLocation())) {
+            throw new ConflictException("⚠️ A beach with the same name and location already exists.");
+        }
         return beachRepository.save(beach);
     }
 
+    public Beach updateBeach(Long id, BeachDTO beachDTO) {
+        Beach existingBeach = beachRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("❌ Beach not found with ID: " + id));
+
+        BeachMapper.updateEntity(existingBeach, beachDTO);
+
+        return beachRepository.save(existingBeach);
+    }
+
     public void deleteBeach(Long id) {
-        if (!beachRepository.existsById(id)) {
-            throw new RuntimeException("Beach not found with id: " + id);
-        }
-        beachRepository.deleteById(id);
+        Beach beach = getBeachById(id);
+        beachRepository.delete(beach);
     }
 
     public List<Beach> filterBeaches(BeachFilter filter) {
-        return beachRepository.findAll((root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
-
-            // Filter by water type (if provided)
-            if (filter.getWaterType() != null && !filter.getWaterType().isEmpty()) {
-                predicates.add(criteriaBuilder.equal(
-                        root.get("waterType"),
-                        WaterType.valueOf(filter.getWaterType().toUpperCase())
-                ));
-            }
-
-            // Filter by location (case-insensitive, partial match)
-            if (filter.getLocation() != null && !filter.getLocation().isEmpty()) {
-                predicates.add(criteriaBuilder.like(
-                        criteriaBuilder.lower(root.get("location")),
-                        "%" + filter.getLocation().toLowerCase() + "%"
-                ));
-            }
-
-            // Filter by beach name (case-insensitive, partial match)
-            if (filter.getName() != null && !filter.getName().isEmpty()) {
-                predicates.add(criteriaBuilder.like(
-                        criteriaBuilder.lower(root.get("name")),
-                        "%" + filter.getName().toLowerCase() + "%"
-                ));
-            }
-
-            // Combine all conditions using AND
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        });
+        return beachRepository.findAll(BeachSpecifications.filterBy(filter));
     }
 }
 

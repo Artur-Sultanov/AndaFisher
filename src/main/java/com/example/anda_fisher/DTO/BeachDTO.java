@@ -15,4 +15,6 @@ public class BeachDTO {
     private Double longitude;
     private String waterType;
     private String imagePath;
+    private String description;
+    private boolean approved;
 }
