@@ -1,12 +1,16 @@
 package com.example.anda_fisher.Controller;
 
+import com.example.anda_fisher.DTO.BeachDTO;
+import com.example.anda_fisher.DTO.WeatherDTO;
 import com.example.anda_fisher.Filter.BeachFilter;
+import com.example.anda_fisher.Mapper.BeachMapper;
 import com.example.anda_fisher.Model.Beach;
 import com.example.anda_fisher.Model.WaterType;
 import com.example.anda_fisher.Service.BeachService;
 import com.example.anda_fisher.Service.FileStorageService;
 import com.example.anda_fisher.Service.FishService;
-import com.example.anda_fisher.dto.BeachDTO;
+import com.example.anda_fisher.Service.WeatherService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-
 import java.util.stream.Collectors;
 
 @RestController
@@ -23,107 +26,49 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/beaches")
 public class BeachController {
 
-    // Injecting required services
     private final BeachService beachService;
     private final FishService fishService;
     private final FileStorageService fileStorageService;
+    private final WeatherService weatherService;
 
-    /**
-     * Retrieve a list of all beaches.
-     * @return List of BeachDTO objects.
-     */
     @GetMapping
     public ResponseEntity<List<BeachDTO>> getAllBeaches() {
         List<BeachDTO> beaches = beachService.getAllBeaches()
                 .stream()
-                .map(this::convertToDTO)
+                .map(BeachMapper::toDTO)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(beaches);
     }
 
-    /**
-     * Retrieve a beach by its ID.
-     * @param id Beach ID.
-     * @return BeachDTO if found, 404 if not.
-     */
+
     @GetMapping("/{id}")
     public ResponseEntity<BeachDTO> getBeachById(@PathVariable Long id) {
         Beach beach = beachService.getBeachById(id);
-        if (beach == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(convertToDTO(beach));
+        return ResponseEntity.ok(BeachMapper.toDTO(beach));
     }
 
-    /**
-     * Create a new beach.
-     * @param beachDTO Data transfer object containing beach details.
-     * @return Created BeachDTO with HTTP 201 status.
-     */
+
     @PostMapping
-    public ResponseEntity<BeachDTO> createBeach(@RequestBody BeachDTO beachDTO) {
-        try {
-
-            Beach beach = convertToEntity(beachDTO);
-
-            Beach savedBeach = beachService.saveBeach(beach);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(savedBeach));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public ResponseEntity<BeachDTO> createBeach(@RequestBody @Valid BeachDTO beachDTO) {
+        Beach beach = BeachMapper.toEntity(beachDTO);
+        Beach savedBeach = beachService.addBeach(beach);
+        return ResponseEntity.status(HttpStatus.CREATED).body(BeachMapper.toDTO(savedBeach));
     }
 
-    /**
-     * Update an existing beach by its ID.
-     * @param id Beach ID.
-     * @param beachDTO Updated beach details.
-     * @return Updated BeachDTO if successful.
-     */
+
     @PutMapping("/{id}")
     public ResponseEntity<BeachDTO> updateBeach(@PathVariable Long id, @RequestBody BeachDTO beachDTO) {
-        Beach existingBeach = beachService.getBeachById(id);
-
-        if (existingBeach == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        // Updating beach fields
-        existingBeach.setName(beachDTO.getName());
-        existingBeach.setLocation(beachDTO.getLocation());
-        existingBeach.setLatitude(beachDTO.getLatitude());
-        existingBeach.setLongitude(beachDTO.getLongitude());
-        existingBeach.setWaterType(WaterType.valueOf(beachDTO.getWaterType()));
-        existingBeach.setImagePath(beachDTO.getImagePath());
-
-        Beach updatedBeach = beachService.saveBeach(existingBeach);
-
-        return ResponseEntity.ok(convertToDTO(updatedBeach));
+        Beach updatedBeach = beachService.updateBeach(id, beachDTO);
+        return ResponseEntity.ok(BeachMapper.toDTO(updatedBeach));
     }
 
-
-    /**
-     * Delete a beach by its ID.
-     * @param id Beach ID.
-     * @return Success message or 404 if not found.
-     */
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteBeach(@PathVariable Long id) {
-        Beach beach = beachService.getBeachById(id);
-        if (beach == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Beach not found with id: " + id);
-        }
         beachService.deleteBeach(id);
-        return ResponseEntity.ok("Beach with id " + id + " has been successfully deleted.");
+        return ResponseEntity.ok("✅ Beach with ID " + id + " has been successfully deleted.");
     }
 
-    /**
-     * Upload an image for a specific beach.
-     * @param id Beach ID.
-     * @param file Multipart image file.
-     * @return Success or error message.
-     */
     @PostMapping("/{id}/uploadImage")
     public ResponseEntity<String> uploadBeachImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         Beach beach = beachService.getBeachById(id);
@@ -149,7 +94,7 @@ public class BeachController {
         try {
             String imagePath = fileStorageService.saveFile(file, "beaches");
             beach.setImagePath(imagePath);
-            beachService.saveBeach(beach);
+            beachService.addBeach(beach);
 
             return ResponseEntity.ok("Image uploaded successfully: " + imagePath);
         } catch (IOException e) {
@@ -158,76 +103,42 @@ public class BeachController {
         }
     }
 
-    /**
-     * Retrieve all beaches with coordinates for the map.
-     * @return List of BeachDTO with coordinates.
-     */
     @GetMapping("/map")
     public ResponseEntity<List<BeachDTO>> getAllBeachesForMap() {
         List<BeachDTO> beaches = beachService.getAllBeaches()
                 .stream()
-                .map(this::convertToDTO)
+                .map(BeachMapper::toDTO)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(beaches);
     }
 
-    /**
-     * Endpoint to filter beaches by water type, location, and name.
-     * All parameters are optional. If none are provided, all beaches are returned.
-     */
     @GetMapping("/map/filter")
-    public ResponseEntity<List<BeachDTO>> filterBeaches(
-            @RequestParam(required = false) String waterType,
-            @RequestParam(required = false) String location,
-            @RequestParam(required = false) String name
-    ) {
-        if (waterType != null) {
-            try {
-                WaterType.valueOf(waterType.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().body(null);
-            }
-        }
-
-        BeachFilter filter = new BeachFilter(waterType, location, name);
+    public ResponseEntity<List<BeachDTO>> filterBeachesForMap(BeachFilter filter) {
         List<BeachDTO> beaches = beachService.filterBeaches(filter)
                 .stream()
-                .map(this::convertToDTO)
-                .toList();
-
+                .filter(beach -> beach.getLatitude() != null && beach.getLongitude() != null) // Только пляжи с координатами
+                .map(BeachMapper::toDTO)
+                .collect(Collectors.toList());
         return ResponseEntity.ok(beaches);
     }
 
-    /**
-     * Convert a Beach entity to a BeachDTO.
-     * @param beach Beach entity.
-     * @return BeachDTO object.
-     */
-    private BeachDTO convertToDTO(Beach beach) {
-        return new BeachDTO(
-                beach.getId(),
-                beach.getName(),
-                beach.getLocation(),
-                beach.getLatitude(),
-                beach.getLongitude(),
-                beach.getWaterType().toString(),
-                beach.getImagePath()
-        );
-    }
+    @GetMapping("/{id}/weather")
+    public ResponseEntity<?> getBeachWeather(@PathVariable Long id) {
+        // Проверка существования пляжа
+        Beach beach = beachService.getBeachById(id);
+        if (beach == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Beach not found with ID: " + id);
+        }
 
-    /**
-     * Convert a BeachDTO to a Beach entity.
-     * @param beachDTO BeachDTO object.
-     * @return Beach entity.
-     */
-    private Beach convertToEntity(BeachDTO beachDTO) {
-        Beach beach = new Beach();
-        beach.setName(beachDTO.getName());
-        beach.setLocation(beachDTO.getLocation());
-        beach.setLatitude(beachDTO.getLatitude());
-        beach.setLongitude(beachDTO.getLongitude());
-        beach.setWaterType(WaterType.valueOf(beachDTO.getWaterType()));
-        beach.setImagePath(beachDTO.getImagePath());
-        return beach;
+        try {
+            // Получаем отформатированные данные о погоде
+            WeatherDTO weather = weatherService.getFormattedWeather(beach.getLatitude(), beach.getLongitude());
+            return ResponseEntity.ok(weather);
+
+        } catch (RuntimeException e) {
+            // Обработка ошибок от внешнего API
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching weather data: " + e.getMessage());
+        }
     }
 }

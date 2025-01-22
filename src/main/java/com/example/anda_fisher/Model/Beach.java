@@ -37,6 +37,8 @@ public class Beach {
     @Column(nullable = false)
     @NotBlank(message = "Location cannot be empty")
     private String location;
+    @Column
+    private String description;
     @Column(updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -53,13 +55,15 @@ public class Beach {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @NotNull(message = "Water type must be specified")
-    private WaterType waterType;
+    private WaterType waterType = WaterType.SALTWATER;
     @Column(unique = true)
     @Basic(fetch = FetchType.LAZY)
     private String imagePath;
 
+    @Column(nullable = false)
+    private boolean approved = false;
+
     @OneToMany(mappedBy = "beach", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     private Set<BeachFish> beachFish = new HashSet<>();
-
 }

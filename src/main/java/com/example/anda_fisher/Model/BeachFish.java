@@ -23,6 +23,7 @@ public class BeachFish {
 
     @ManyToOne
     @JoinColumn(name = "fish_id", nullable = false)
+    @JsonBackReference
     private Fish fish;
 }
 

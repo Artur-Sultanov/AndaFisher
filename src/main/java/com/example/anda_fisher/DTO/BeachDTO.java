@@ -1,4 +1,4 @@
-package com.example.anda_fisher.dto;
+package com.example.anda_fisher.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,4 +15,6 @@ public class BeachDTO {
     private Double longitude;
     private String waterType;
     private String imagePath;
+    private String description;
+    private boolean approved;
 }
