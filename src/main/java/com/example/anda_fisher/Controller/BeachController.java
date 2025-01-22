@@ -5,11 +5,7 @@ import com.example.anda_fisher.DTO.WeatherDTO;
 import com.example.anda_fisher.Filter.BeachFilter;
 import com.example.anda_fisher.Mapper.BeachMapper;
 import com.example.anda_fisher.Model.Beach;
-import com.example.anda_fisher.Model.WaterType;
-import com.example.anda_fisher.Service.BeachService;
-import com.example.anda_fisher.Service.FileStorageService;
-import com.example.anda_fisher.Service.FishService;
-import com.example.anda_fisher.Service.WeatherService;
+import com.example.anda_fisher.Service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,6 +24,7 @@ public class BeachController {
 
     private final BeachService beachService;
     private final FishService fishService;
+    private final BeachFishService beachFishService;
     private final FileStorageService fileStorageService;
     private final WeatherService weatherService;
 
@@ -141,4 +138,11 @@ public class BeachController {
                     .body("Error fetching weather data: " + e.getMessage());
         }
     }
+
+    @PostMapping("/beaches/{beachId}/fish")
+    public ResponseEntity<String> addFishToBeach(@PathVariable Long beachId, @RequestBody List<Long> fishIds) {
+        beachFishService.addFishToBeach(beachId, fishIds);
+        return ResponseEntity.ok("Fish successfully added to the beach.");
+    }
+
 }
