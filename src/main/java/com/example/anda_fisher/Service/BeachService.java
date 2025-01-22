@@ -65,5 +65,12 @@ public class BeachService {
     public List<Beach> filterBeaches(BeachFilter filter) {
         return beachRepository.findAll(BeachSpecifications.filterBy(filter));
     }
+
+    public Beach approveBeach(Long id) {
+        Beach beach = beachRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Beach not found with ID: " + id));
+        beach.setApproved(true);
+        return beachRepository.save(beach);
+    }
 }
 

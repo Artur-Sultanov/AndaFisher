@@ -25,5 +25,10 @@ public class BeachFish {
     @JoinColumn(name = "fish_id", nullable = false)
     @JsonBackReference
     private Fish fish;
+
+    public BeachFish(Beach beach, Fish fish) {
+        this.beach = beach;
+        this.fish = fish;
+    }
 }
 

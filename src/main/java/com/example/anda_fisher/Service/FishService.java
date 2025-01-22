@@ -1,6 +1,7 @@
 package com.example.anda_fisher.Service;
 
 import com.example.anda_fisher.DTO.FishDTO;
+import com.example.anda_fisher.Exception.ResourceNotFoundException;
 import com.example.anda_fisher.Mapper.FishMapper;
 import com.example.anda_fisher.Model.Fish;
 import com.example.anda_fisher.Repository.FishRepository;
@@ -46,4 +47,12 @@ public class FishService {
         }
         fishRepository.deleteById(id);
     }
+
+    public Fish approveFish(Long id) {
+        Fish fish = fishRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Fish not found with ID: " + id));
+        fish.setApproved(true);
+        return fishRepository.save(fish);
+    }
+
 }
