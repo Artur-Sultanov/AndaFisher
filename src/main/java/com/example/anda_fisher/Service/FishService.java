@@ -22,6 +22,7 @@ public class FishService {
     public List<FishDTO> getAllFish() {
         return fishRepository.findAll()
                 .stream()
+                .filter(Fish::isApproved)
                 .map(FishMapper::toDTO)
                 .collect(Collectors.toList());
     }
@@ -34,6 +35,7 @@ public class FishService {
 
     public FishDTO saveFish(FishDTO fishDTO) {
         Fish fish = FishMapper.toEntity(fishDTO);
+        fish.setApproved(false);
         Fish savedFish = fishRepository.save(fish);
         return FishMapper.toDTO(savedFish);
     }

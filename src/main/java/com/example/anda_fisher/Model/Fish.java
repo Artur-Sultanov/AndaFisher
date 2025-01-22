@@ -28,6 +28,8 @@ public class Fish {
     private LocalDateTime createdAt;
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+    @Column(nullable = false)
+    private boolean approved = false;
 
     @OneToMany(mappedBy = "fish", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference

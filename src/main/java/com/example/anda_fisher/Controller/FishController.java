@@ -30,9 +30,10 @@ public class FishController {
     }
 
     @PostMapping
-    public ResponseEntity<FishDTO> createFish(@RequestBody FishDTO fishDTO) {
-        FishDTO createdFish = fishService.saveFish(fishDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdFish);
+    public ResponseEntity<String> createFish(@RequestBody FishDTO fishDTO) {
+        fishDTO.setApproved(false);  // ✅ Автоматически устанавливаем флаг approved в false
+        fishService.saveFish(fishDTO);
+        return ResponseEntity.ok("Fish created and pending approval.");
     }
 
     @DeleteMapping("/{id}")

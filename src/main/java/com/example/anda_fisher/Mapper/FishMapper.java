@@ -9,7 +9,7 @@ public class FishMapper {
      * Convert Fish entity to FishDTO.
      */
     public static FishDTO toDTO(Fish fish) {
-        return new FishDTO(fish.getId(), fish.getName());
+        return new FishDTO(fish.getId(), fish.getName(), fish.isApproved());
     }
 
     /**
@@ -18,6 +18,7 @@ public class FishMapper {
     public static Fish toEntity(FishDTO fishDTO) {
         Fish fish = new Fish();
         fish.setName(fishDTO.getName());
+        fish.setApproved(fishDTO.isApproved());
         return fish;
     }
 }
