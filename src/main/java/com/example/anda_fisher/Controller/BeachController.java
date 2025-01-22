@@ -40,13 +40,11 @@ public class BeachController {
         return ResponseEntity.ok(beaches);
     }
 
-
     @GetMapping("/{id}")
     public ResponseEntity<BeachDTO> getBeachById(@PathVariable Long id) {
         Beach beach = beachService.getBeachById(id);
         return ResponseEntity.ok(BeachMapper.toDTO(beach));
     }
-
 
     @PostMapping
     public ResponseEntity<BeachDTO> createBeach(@RequestBody @Valid BeachDTO beachDTO) {
@@ -54,7 +52,6 @@ public class BeachController {
         Beach savedBeach = beachService.addBeach(beach);
         return ResponseEntity.status(HttpStatus.CREATED).body(BeachMapper.toDTO(savedBeach));
     }
-
 
     @PutMapping("/{id}")
     public ResponseEntity<BeachDTO> updateBeach(@PathVariable Long id, @RequestBody BeachDTO beachDTO) {
@@ -74,32 +71,35 @@ public class BeachController {
         Beach beach = beachService.getBeachById(id);
 
         if (beach == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Beach not found with id: " + id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("❌ Beach not found with ID: " + id);
         }
 
         if (file == null || file.isEmpty()) {
-            return ResponseEntity.badRequest().body("Uploaded file is empty or missing");
+            return ResponseEntity.badRequest().body("⚠️ Uploaded file is empty or missing.");
         }
         // Validate file size (max 5MB)
         if (file.getSize() > 5 * 1024 * 1024) {
-            return ResponseEntity.badRequest().body("File size exceeds 5MB limit.");
+            return ResponseEntity.badRequest().body("⚠️ File size exceeds 5MB limit.");
         }
 
         // Validate file type
         String fileName = file.getOriginalFilename();
-        if (fileName != null && !fileName.matches(".*\\.(jpg|jpeg|png|gif)$")) {
-            return ResponseEntity.badRequest().body("Invalid file type. Allowed types: jpg, jpeg, png, gif.");
+        if (fileName == null || !fileName.matches(".*\\.(jpg|jpeg|png|gif)$")) {
+            return ResponseEntity.badRequest().body("⚠️ Invalid file type. Allowed types: jpg, jpeg, png, gif.");
         }
 
         try {
             String imagePath = fileStorageService.saveFile(file, "beaches");
             beach.setImagePath(imagePath);
-            beachService.addBeach(beach);
+            beachService.updateBeach(beach.getId(), BeachMapper.toDTO(beach)); // Используем обновление
 
-            return ResponseEntity.ok("Image uploaded successfully: " + imagePath);
+            return ResponseEntity.ok("✅ Image uploaded successfully: " + imagePath);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error uploading image: " + e.getMessage());
+                    .body("❌ Error uploading image: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("❌ Unexpected error occurred: " + e.getMessage());
         }
     }
 
