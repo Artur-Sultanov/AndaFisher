@@ -26,7 +26,7 @@ public class FileStorageService {
 
         String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
-        Path basePath = Paths.get("C:/Users/artur/Projects/anda-fisher/uploads/images/beaches", subDirectory);
+        Path basePath = Paths.get("C:/Users/artur/Projects/anda-fisher/uploads/images", subDirectory);
         Path filePath = basePath.resolve(fileName);
 
         Files.createDirectories(filePath.getParent());

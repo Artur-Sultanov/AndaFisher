@@ -9,7 +9,7 @@ import java.nio.file.Paths;
 @Service
 public class FileCleanupService {
 
-    private final String basePath = "C:/Users/artur/Projects/anda-fisher/uploads/images/beaches";
+    private final String basePath = "C:/Users/artur/Projects/anda-fisher/uploads/images";
 
     public void deleteFile(String relativePath) {
         if (relativePath == null || relativePath.isBlank()) return;
