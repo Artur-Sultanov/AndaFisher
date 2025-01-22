@@ -1,16 +1,20 @@
 # 🌊 **Anda Fisher Application**
 
 ## 📖 Project Overview
-The **Anda Fisher** application is a platform for managing beaches, tracking fish species, and providing real-time weather updates. It allows users to interact with beach data, upload media, and soon will include social features like reviews, ratings, and travel companions.
+The **Anda Fisher** application is a platform for managing beaches, tracking fish species, and providing real-time weather updates. It allows users to interact with beach data, upload media, and includes advanced features for user authentication and role-based access.
 
 ## 🚀 Features
 - **CRUD Operations** for beaches and fish (Create, Read, Update, Delete)
+- **User Authentication & Authorization**: Secure login and registration with JWT
+- **Role Management**: Admin and User roles with fine-grained access control
 - **File Upload**: Upload images related to beaches
 - **Real-time Weather Integration**: Weather data from OpenWeatherMap API
 - **DTOs and Mappers**: Clean and secure API responses
-- **Beach Filtering:** Search beaches by water type, location, or name.
+- **Beach Filtering:** Search beaches by water type, location, or name
+- **Approval Workflow:** Admin approval required for beaches and fish
 - **Entity Relationship Management**: Link beaches with fish species
 - **Advanced Error Handling**: User-friendly error messages with proper HTTP statuses
+- **Static Resource Hosting:** Serve uploaded images from a dedicated endpoint
 
 ## 🏗️ Project Structure
 
@@ -20,35 +24,53 @@ anda-fisher
 │   ├── main
 │   │   ├── java
 │   │   │   └── com.example.anda_fisher
+│   │   │       ├── Config
+│   │   │       │   ├── SecurityConfig.java
+│   │   │       │   ├── SwaggerConfig.java
+│   │   │       │   └── WebConfig.java
 │   │   │       ├── Controller
+│   │   │       │   ├── AuthController.java
 │   │   │       │   ├── BeachController.java
-│   │   │       │   └── FishController.java
+│   │   │       │   ├── FishController.java
+│   │   │       │   └── AdminController.java
+│   │   │       ├── DTO
+│   │   │       │   ├── BeachDTO.java
+│   │   │       │   ├── FishDTO.java
+│   │   │       │   ├── WeatherDTO.java
+│   │   │       │   └── UserDTO.java
+│   │   │       ├── Exception
+│   │   │       │   ├── GlobalExceptionHandler.java
+│   │   │       │   ├── ConflictException.java
+│   │   │       │   ├── ResourceNotFoundException.java
+│   │   │       │   └── ValidationException.java
+│   │   │       ├── Filter
+│   │   │       │   └── BeachFilter.java
+│   │   │       ├── Mapper
+│   │   │       │   ├── BeachMapper.java
+│   │   │       │   ├── FishMapper.java
+│   │   │       │   └── UserMapper.java
 │   │   │       ├── Model
 │   │   │       │   ├── Beach.java
 │   │   │       │   ├── Fish.java
 │   │   │       │   ├── BeachFish.java
-│   │   │       │   └── WaterType.java
+│   │   │       │   ├── WaterType.java
+│   │   │       │   └── User.java
+│   │   │       ├── Repository
+│   │   │       │   ├── BeachRepository.java
+│   │   │       │   ├── FishRepository.java
+│   │   │       │   └── UserRepository.java
+│   │   │       ├── Security
+│   │   │       │   ├── JwtAuthenticationFilter.java
+│   │   │       │   ├── JwtService.java
 │   │   │       ├── Service
 │   │   │       │   ├── BeachService.java
 │   │   │       │   ├── FishService.java
 │   │   │       │   ├── FileStorageService.java
+│   │   │       │   ├── UserService.java
+│   │   │       │   ├── EmailService.java
 │   │   │       │   └── WeatherService.java
-│   │   │       ├── Repository
-│   │   │       │   ├── BeachRepository.java
-│   │   │       │   └── FishRepository.java
-│   │   │       ├── Security
-│   │   │       │   └── SecurityConfig.java
-│   │   │       ├── DTO
-│   │   │       │   ├── BeachDTO.java
-│   │   │       │   ├── FishDTO.java
-│   │   │       │   └── WeatherDTO.java
-│   │   │       ├── Mapper
-│   │   │       │   ├── FishMapper.java
-│   │   │       │   └── BeachMapper.java
-│   │   │       ├── Filter
-│   │   │       │   └── BeachFilter.java
-│   │   │       └── Config
-│   │   │           └── WebConfig.java
+│   │   │       └── Specification
+│   │   │           └── BeachSpecifications.java
 │   └── resources
 ├── uploads/images
 ├── uploads/archive
@@ -64,6 +86,7 @@ anda-fisher
 - **Lombok**
 - **Maven**
 - **OpenWeatherMap API**
+- **Swagger** (OpenAPI 3.0) for API Documentation
 
 ---
 
@@ -110,7 +133,9 @@ anda-fisher
     "latitude": 36.7783,
     "longitude": -119.4179,
     "waterType": "FRESHWATER",
-    "imagePath": ""
+    "imagePath": "",
+    "description": "Beautiful beach",
+    "approved": false
   }
   ```
 
@@ -125,13 +150,12 @@ anda-fisher
     "message": "Beach with id {id} has been successfully deleted."
   }
   ```
-  
+
 ### 🌦️ Weather Integration
 
-- **Get weather for a beach** 
-  `GET /api/beaches/{id}/weather`
+- **Get weather for a beach**  
+  `GET /api/beaches/{id}/weather`  
    **Example Response:**
-
   ```json
   {
     "location": "Granada",
@@ -144,6 +168,27 @@ anda-fisher
   }
   ```
 
+### 🔒 User Authentication
+
+- **Register User**  
+  `POST /auth/register`  
+  ```json
+  {
+    "username": "john_doe",
+    "password": "securePassword",
+    "email": "john@example.com",
+    "phoneNumber": "+1234567890"
+  }
+  ```
+
+- **Login User**  
+  `POST /auth/login`  
+  ```json
+  {
+    "username": "john_doe",
+    "password": "securePassword"
+  }
+  ```
 
 ### 🖼️ **Image Upload**
 
@@ -155,38 +200,48 @@ anda-fisher
 - ✅ *Success:* `"Image uploaded successfully"`  
 - ❌ *Error:* `"Invalid file format or upload failed"`  
 - ⚠️ *Error:* `"File size exceeds 5MB limit"`
-  
 
+### 🛡️ Admin Management
 
-### ⚙️ Static Resource Configuration
+- **Approve Beach**  
+  `PUT /admin/beaches/{id}/approve`
 
-- **Configured access to uploaded images using `WebConfig.java`:**
-  ```java
-  @Override
-  public void addResourceHandlers(ResourceHandlerRegistry registry) {
-      registry.addResourceHandler("/uploads/**")
-              .addResourceLocations("file:uploads/");
+- **Delete Beach**  
+  `DELETE /admin/beaches/{id}`
+
+- **Approve Fish**  
+  `PUT /admin/fish/{id}/approve`
+
+- **Delete Fish**  
+  `DELETE /admin/fish/{id}`
+
+- **Get All Users**  
+  `GET /admin/users`
+
+- **Delete User**  
+  `DELETE /admin/users/{id}`
+
+- **Update User Role**  
+  `PUT /admin/users/{id}/role`
+  ```json
+  {
+    "role": "ADMIN"
   }
   ```
 
 ---
 
-
-## ⚠️ Error Handling
-
-- **404 Not Found:** If the beach does not exist (handled in service layer). 
-- **400 Bad Request:** Invalid file type during upload (validated in controller).
-- **500 Internal Server Error:** Server-side errors (handled via global exception handling).
-
 ## 📌 Future Improvements
 
-- 🔒 User authentication & authorization (JWT)
 - 🔄 Caching Weather Data to reduce API load
 - ⭐ Reviews and Ratings for beaches
 - 📱 Social Features: Chat and travel companion search
-- ❗ Implement Soft Delete with Media Archive for safer data removal and recovery.
+- ❗ Implement Soft Delete with Media Archive for safer data removal and recovery
 - 🗑 Auto-cleaning Archive: Auto-delete old media files after 30 days
-  
+- 🖥️ Dashboard: Advanced analytics for admin users
+- 🧾 Add Detailed Logging for API Requests
+- 📜 API Usage Analytics for Admins
+- 🌍 Multilingual Support for Global Users
 
 ## 📝 License
 
