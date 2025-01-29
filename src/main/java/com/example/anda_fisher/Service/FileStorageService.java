@@ -24,15 +24,27 @@ public class FileStorageService {
             throw new IllegalArgumentException("Uploaded file is empty or null");
         }
 
-        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        String originalFileName = file.getOriginalFilename();
+        String sanitizedFileName = generateSafeFileName(originalFileName);
 
         Path basePath = Paths.get("C:/Users/artur/Projects/anda-fisher/uploads/images", subDirectory);
-        Path filePath = basePath.resolve(fileName);
+        Path filePath = basePath.resolve(sanitizedFileName);
 
         Files.createDirectories(filePath.getParent());
 
         Files.write(filePath, file.getBytes());
 
-        return Paths.get(subDirectory, fileName).toString().replace("\\", "/");
+        return Paths.get(subDirectory, sanitizedFileName).toString().replace("\\", "/");
+    }
+
+    private String generateSafeFileName(String originalFileName) {
+        if (originalFileName == null) {
+            throw new IllegalArgumentException("File name is null");
+        }
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        return originalFileName
+                .replaceAll("\\s+", "_")
+                .replaceAll("[^a-zA-Z0-9._-]", "")
+                .replace(".", "_" + timestamp + ".");
     }
 }
