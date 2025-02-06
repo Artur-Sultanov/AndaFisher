@@ -45,8 +45,12 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll() // Разрешить доступ
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/beaches/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/beaches/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/beaches/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/uploads/images/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/uploads/images/map/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/beaches/map/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/beaches/{id}/weather").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/api/beaches/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/beaches/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/beaches/{id}/uploadImage").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
