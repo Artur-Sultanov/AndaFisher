@@ -109,7 +109,12 @@ anda-fisher
 
 3. **Run the Application**
    ```bash
-   mvn spring-boot:run
+   ./mvnw spring-boot:run
+   ```
+   **Or if Maven Wrapper is missing:**
+   ```bash
+   mvn -N io.takari:maven:wrapper
+   ./mvnw spring-boot:run
    ```
 
    The application will start on **http://localhost:8081**.
@@ -130,9 +135,11 @@ anda-fisher
   {
     "name": "Playa Granada",
     "location": "Granada",
-    "latitude": 36.7783,
-    "longitude": -119.4179,
-    "waterType": "FRESHWATER",
+
+    "latitude": 36.7453,
+    "longitude": -3.5174,
+    "waterType": "SALTHWATER",
+
     "imagePath": "",
     "description": "Beautiful beach",
     "approved": false
@@ -155,7 +162,9 @@ anda-fisher
 
 - **Get weather for a beach**  
   `GET /api/beaches/{id}/weather`  
-   **Example Response:**
+
+  **Example Response:**
+
   ```json
   {
     "location": "Granada",
