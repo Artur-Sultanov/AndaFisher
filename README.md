@@ -135,9 +135,11 @@ anda-fisher
   {
     "name": "Playa Granada",
     "location": "Granada",
+
     "latitude": 36.7453,
     "longitude": -3.5174,
     "waterType": "SALTHWATER",
+
     "imagePath": "",
     "description": "Beautiful beach",
     "approved": false
@@ -160,7 +162,9 @@ anda-fisher
 
 - **Get weather for a beach**  
   `GET /api/beaches/{id}/weather`  
+
   **Example Response:**
+
   ```json
   {
     "location": "Granada",
@@ -176,7 +180,7 @@ anda-fisher
 ### 🔒 User Authentication
 
 - **Register User**  
-  `POST /auth/register`
+  `POST /auth/register`  
   ```json
   {
     "username": "john_doe",
@@ -187,7 +191,7 @@ anda-fisher
   ```
 
 - **Login User**  
-  `POST /auth/login`
+  `POST /auth/login`  
   ```json
   {
     "username": "john_doe",
@@ -197,14 +201,14 @@ anda-fisher
 
 ### 🖼️ **Image Upload**
 
-- **Endpoint:** `POST /api/beaches/{id}/uploadImage`
-- **Form Data:**
-    - **Key:** `file` → *(Select image: `jpg`, `jpeg`, `png`, `gif`, max size: 5MB)*
+- **Endpoint:** `POST /api/beaches/{id}/uploadImage`  
+- **Form Data:**  
+  - **Key:** `file` → *(Select image: `jpg`, `jpeg`, `png`, `gif`, max size: 5MB)*  
 
-**Response:**
-- ✅ *Success:* "Image uploaded successfully"
-- ❌ *Error:* "Invalid file format or upload failed"
-- ⚠️ *Error:* "File size exceeds 5MB limit"
+**Response:**  
+- ✅ *Success:* `"Image uploaded successfully"`  
+- ❌ *Error:* `"Invalid file format or upload failed"`  
+- ⚠️ *Error:* `"File size exceeds 5MB limit"`
 
 ### 🛡️ Admin Management
 
@@ -254,4 +258,3 @@ This project is licensed under the [MIT License](LICENSE).
 ---
 
 **Developed by Anda Fisher Team** 🌊🐟
-
