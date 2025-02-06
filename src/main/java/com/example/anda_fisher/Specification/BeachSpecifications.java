@@ -16,7 +16,6 @@ public class BeachSpecifications {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // Фильтрация по waterType
             if (filter.getWaterType() != null && !filter.getWaterType().isEmpty()) {
                 predicates.add(criteriaBuilder.equal(
                         root.get("waterType"),
@@ -24,7 +23,6 @@ public class BeachSpecifications {
                 ));
             }
 
-            // Фильтрация по location (частичное совпадение, без учёта регистра)
             if (filter.getLocation() != null && !filter.getLocation().isEmpty()) {
                 predicates.add(criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("location")),
@@ -32,7 +30,6 @@ public class BeachSpecifications {
                 ));
             }
 
-            // Фильтрация по имени (частичное совпадение, без учёта регистра)
             if (filter.getName() != null && !filter.getName().isEmpty()) {
                 predicates.add(criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("name")),
