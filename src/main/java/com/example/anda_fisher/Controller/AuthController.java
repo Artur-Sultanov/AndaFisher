@@ -73,7 +73,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> loginUser(@Valid @RequestBody LoginRequest request) {
-        Optional<User> optionalUser = userRepository.findByUsername(request.username());
+        Optional<User> optionalUser = userRepository.findByEmail(request.email());
 
         if (optionalUser.isEmpty() || !passwordEncoder.matches(request.password(), optionalUser.get().getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
