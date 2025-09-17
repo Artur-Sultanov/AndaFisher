@@ -1,6 +1,7 @@
 HELP.md
 
 .env*
+!.env.example
 # Build output
 target/
 

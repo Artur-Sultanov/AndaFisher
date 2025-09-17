@@ -140,17 +140,24 @@
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 
-		<!-- Spring Boot Starter Web: Spring MVC -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
+                <!-- Spring Boot Starter Web: Spring MVC -->
+                <dependency>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-web</artifactId>
+                </dependency>
 
-		<!-- Spring Boot Starter Security: authentication and authorization -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
+
+                <!-- Spring Boot Actuator: production-ready features -->
+                <dependency>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-actuator</artifactId>
+                </dependency>
+
+                <!-- Spring Boot Starter Security: authentication and authorization -->
+                <dependency>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-security</artifactId>
+                </dependency>
 
 		<!-- PostgreSQL Driver -->
 		<dependency>

@@ -22,8 +22,8 @@ public class JwtService {
                       @Value("${jwt.expirationMs}") long expirationTimeMs) {
         this.jwtSecret = jwtSecret;
         this.expirationTimeMs = expirationTimeMs;
-        validateSecretKey();    }
-
+        validateSecretKey();
+    }
 
     @PostConstruct
     private void validateSecretKey() {

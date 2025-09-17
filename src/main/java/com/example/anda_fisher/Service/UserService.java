@@ -31,13 +31,13 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username)
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    public User authenticateUser(String username, String rawPassword) {
-        User user = findByUsername(username);
+    public User authenticateUser(String email, String rawPassword) {
+        User user = findByEmail(email);
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
             throw new RuntimeException("Invalid password");
         }

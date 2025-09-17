@@ -98,13 +98,14 @@ anda-fisher
    cd anda-fisher
    ```
 
-2. **Configure Database**
-   Update `application.properties` with your PostgreSQL credentials:
-   ```properties
-   spring.datasource.url=jdbc:postgresql://localhost:5432/app
-   spring.datasource.username=postgres
-   spring.datasource.password=12345Aa@
-   spring.jpa.hibernate.ddl-auto=update
+2. **Configure Environment Variables**
+   The application reads all sensitive settings (database, JWT, SMTP, weather API) from environment variables.
+   Sample placeholders such as `change_me` and `your_app_password` are used in the property files so no real secrets live in the repo—make sure to replace them locally.
+   For local development you can either export the values manually or supply them through a `.env` file.
+   For containerised runs, copy the example file and adjust the values:
+   ```bash
+   cp .env.example .env
+   # edit .env
    ```
 
 3. **Run the Application**
@@ -118,6 +119,25 @@ anda-fisher
    ```
 
    The application will start on **http://localhost:8081**.
+
+## 🐳 Running with Docker Compose
+
+1. **Prepare the Environment File**
+   Copy `.env.example` to `.env` and fill in the required values:
+   - `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` – PostgreSQL connection details used by both the application and the bundled database container.
+   - `WEATHER_API_KEY` – OpenWeatherMap API key for fetching weather data.
+   - `JWT_SECRET`, `JWT_EXPIRATION_MS` – parameters for JWT token generation.
+   - `SPRING_MAIL_*` variables – SMTP settings for sending emails.
+   - `SPRINGDOC_SWAGGER_UI_ENABLED` – toggle Swagger UI in production (usually `false`).
+
+2. **Launch the Stack**
+   ```bash
+   docker compose up -d
+   ```
+
+3. **Access the Services**
+   - Backend API: http://localhost:8081
+   - PostgreSQL: localhost:5432
 
 ## 📡 API Endpoints
 
